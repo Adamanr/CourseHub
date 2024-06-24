@@ -1,0 +1,9 @@
+server:
+  address: "127.0.0.1:8080"
+  timeout:  "5s"
+  read-timeout: "5s"
+  write-timeout:  "5s"
+database:
+  address:  "127.0.0.1:5431"
+  username:  "postgres"
+  password:  "admin21"

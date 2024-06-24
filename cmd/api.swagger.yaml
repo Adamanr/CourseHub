@@ -1,0 +1,695 @@
+openapi: 3.0.3
+info:
+  title: Swagger Petstore - OpenAPI 3.0
+  description: |-
+    Основная документация по Swagger.
+  contact:
+    url: https://t.me/CringeINC
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://petstore3.swagger.io/api/v3
+tags:
+  - name: courses
+    description: Список операций с курсами
+  - name: playlists
+    description: Список операций с плейлистами
+  - name: users
+    description: Список операций с пользователями
+paths:
+  /courses:
+    get:
+      tags:
+        - courses
+      summary: List all courses
+      operationId: listCourses
+      parameters:
+        - name: limit
+          in: query
+          description: Параметр для получения определенное количество курсов
+          required: false
+          schema:
+            type: integer
+            example: "limit=10"
+        - name: offset
+          in: query
+          description:  Параметр для получения определенного количества курсов через offset
+          required: false
+          schema:
+            type: integer
+            example: "offset=10"
+        - name: orderBy
+          in: query
+          description:  Параметр для сортировки курсов по указанному полю и методу сортировки
+          required: false
+          schema:
+            type: string
+            example: "orderBy=author:desc"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Courses'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /course/new:
+    post:
+      tags:
+        - courses
+      summary: Create course
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Course'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /course/image:
+    post:
+      tags:
+        - courses
+      summary: Upload image
+      requestBody:
+        description: 'image url path'
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {
+                  type: string, format: binary
+                }
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServiceError'
+  /course/{id}:
+    get:
+      tags:
+        - courses
+      summary: Get course by id
+      operationId: getCourse
+      parameters:
+        - name: id
+          in: path
+          description: 'description regarding param2'
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Course'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+    put:
+      tags:
+        - courses
+      summary: Update course
+      parameters:
+        - name: id
+          in: path
+          description: 'description regarding param2'
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Course'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+    delete:
+      tags:
+        - courses
+      summary: Delete course
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Course'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /users:
+    get:
+      tags:
+        - users
+      summary: List all users
+      parameters:
+        - name: limit
+          in: query
+          description: Параметр для получения определенное количество курсов
+          required: false
+          schema:
+            type: integer
+            example: "limit=10"
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - Lain
+                - admin
+                - member
+                - teacher
+                - mentor
+              example: "role=admin"
+        - name: orderBy
+          in: query
+          description:  Параметр для сортировки курсов по указанному полю и методу сортировки
+          required: false
+          schema:
+            type: string
+            example: "orderBy=author:desc"
+      operationId: getUsers
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Users'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /user/{id}:
+    get:
+      tags:
+        - users
+      summary: Get user by id
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          description: 'description regarding param2'
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/User'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+    put:
+      tags:
+        - user
+      summary: Update user
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/User'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+    delete:
+      tags:
+        - user
+      summary: Delete user
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/User'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /users/avatar:
+    post:
+      tags:
+        - users
+      summary: Upload avatar
+      requestBody:
+        description:  'avatar url path'
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {
+                  type: string, format: binary
+                }
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /users/sign_up:
+    post:
+      tags:
+        - users
+      summary: Create user
+      requestBody:
+        description:  'Sign up new user'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref:  '#/components/schemas/UserSignUp'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/User'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /users/sign_in:
+    post:
+      tags:
+        - users
+      summary: Authorize user
+      requestBody:
+        description:  'Sign in new user'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref:  '#/components/schemas/UserSignIn'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/User'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /playlists:
+    get:
+      tags:
+        - playlists
+      summary: List all playlists
+      parameters:
+        - name: limit
+          in: query
+          description: Параметр для получения определенное количество курсов
+          required: false
+          schema:
+            type: integer
+            example: "limit=10"
+        - name: author
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: createdAt
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "createdAt=2021-01-01"
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              example: "status=closed"
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+            example: "title=Java"
+        - name: orderBy
+          in: query
+          description: Параметр для сортировки курсов по указанному полю и методу сортировки
+          required: false
+          schema:
+            type: string
+            example: "orderBy=author:desc"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Playlists'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /playlists/{id}:
+    get:
+      tags:
+        - playlists
+      summary: Get playlist by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Playlist'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+    put:
+      tags:
+        - playlists
+      summary: Update playlist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Playlist'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+    delete:
+      tags:
+        - playlists
+      summary: Delete playlist
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /playlists/new:
+    post:
+      tags:
+        - playlists
+      summary: Create playlist
+      requestBody:
+        description:  'Create new playlist'
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref:  '#/components/schemas/Playlist'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/Playlist'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref:  '#/components/schemas/InternalServiceError'
+  /playlists/image:
+    post:
+      tags:
+        - playlists
+      summary: Upload image to playlist
+      requestBody:
+        description: 'avatar url path'
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {
+                  type: string, format: binary
+                }
+components:
+  schemas:
+    Courses:
+      type: array
+      items:
+        $ref: '#/components/schemas/Course'
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 10
+        title:
+          type: string
+          example: Java
+        description:
+          type: string
+          example: Java
+        author_id:
+          type: integer
+          example: 1
+        price:
+          type: number
+          example: 99.99
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        course_image_id:
+          type: string
+          example: "im131asd21zas"
+        course_image_url:
+          type: string
+          example: https://cdn.pixabay.com/photo/2015/04/23/22/09/37/blank-profile-picture-973460_960_720.png
+        status:
+          type: string
+          enum:
+            - closed
+            - expired
+            - open
+            - deleted
+    InternalServiceError:
+      type: object
+      properties:
+        message:
+          example: Internal server error
+        code:
+          type: integer
+          example: Internal server error
+    UserSignUp:
+      type: object
+      properties:
+        login:
+          type: string
+          example: John
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: '123'
+        notification:
+          type: boolean
+          example: true
+    UserSignIn:
+      type: object
+      properties:
+        login:
+          type: string
+          example: John
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: '123'
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        login:
+          type: string
+          example: theUser
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: '12345'
+        avatar_id:
+          type: string
+          example: '12345'
+        description:
+          type: string
+          example: Java is the best
+        role:
+          type: array
+          items:
+            type: string
+            enum:
+              - Lain
+              - admin
+              - member
+              - mentor
+              - teacher
+      required:
+        - login
+        - email
+        - role
+        - avatar_id
+      xml:
+        name: user
+    Users:
+      description: List of user object
+      type: array
+      items:
+        $ref: '#/components/schemas/User'
+    Playlist:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        author_id:
+          type: integer
+          example: 10
+        title:
+          type: string
+          example: Java
+        description:
+          type: string
+          example: Java
+        playlist_image_id:
+          type: string
+          example: im131asd21zas
+        courses:
+          type: array
+          items:
+            $ref:  '#/components/schemas/Course'
+            description: List of course
+      required:
+        - title
+        - author_id
+    Playlists:
+      type: array
+      items:
+        $ref: '#/components/schemas/Playlist'
+
