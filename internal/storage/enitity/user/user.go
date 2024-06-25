@@ -1,15 +1,25 @@
 package user
 
+import (
+	"context"
+	"github.com/jackc/pgx/v5"
+	"log/slog"
+	"time"
+)
+
 type User struct {
-	Id          int    `json:"id"`
-	Login       string `yaml:"login"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	AvatarId    string `json:"avatar_id"`
-	Description string `json:"description" `
+	Id          int       `json:"id"`
+	Login       string    `yaml:"login"`
+	Email       string    `json:"email"`
+	Password    string    `json:"password"`
+	AvatarId    string    `json:"avatar_id"`
+	Description string    `json:"description" `
+	CreatedAt   time.Time `json:"created_at" `
+	UpdatedAt   time.Time `json:"updated_at" `
 }
 
 type IUser interface {
+	GetUsers() ([]*User, error)
 	GetUserById(id int) (*User, error)
 	GetUserByLogin(login string) (*User, error)
 	GetUserByEmail(email string) (*User, error)
@@ -20,6 +30,29 @@ type IUser interface {
 	GetAvatar(id int) (string, error)
 	GetSubscribers(id int) ([]int, error)
 	GetFollowers(id int) ([]int, error)
+}
+
+func GetUsers(conn *pgx.Conn) ([]User, error) {
+	rows, err := conn.Query(context.Background(), "SELECT * FROM users")
+	if err != nil {
+		slog.Error("Error querying users: %s", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var users []User
+	for rows.Next() {
+		var user User
+		if scanErr := rows.Scan(&user.Id, &user.Login, &user.Email, &user.Password, &user.AvatarId, &user.Description, &user.CreatedAt, &user.UpdatedAt); scanErr != nil {
+			slog.Error("Error scanning row: %s", scanErr)
+			return nil, scanErr
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 func (u *User) GetUserById(id int) (*User, error) {

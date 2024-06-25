@@ -1,20 +1,25 @@
 package api
 
 import (
-	userController "CourseHub/internal/router/user"
+	userController "CourseHub/internal/handler/user"
 	"encoding/json"
+	"github.com/jackc/pgx/v5"
 	"net/http"
 )
 
-type CourseHub struct{}
+type CourseHub struct {
+	Conn *pgx.Conn
+}
 
 func (c CourseHub) Pong(w http.ResponseWriter, r *http.Request) {
 	//TODO implement me
 	w.Write([]byte("Ping"))
 }
 
-func NewCourseHub() *CourseHub {
-	return &CourseHub{}
+func NewCourseHub(db *pgx.Conn) *CourseHub {
+	return &CourseHub{
+		Conn: db,
+	}
 }
 
 func (c CourseHub) PostCourseImage(w http.ResponseWriter, r *http.Request) {
@@ -92,15 +97,13 @@ func (c CourseHub) PutUserId(w http.ResponseWriter, r *http.Request, id int) {
 }
 
 func (c CourseHub) GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams) {
-	user, err := userController.GetUsers()
-
-	data, err := json.Marshal(user)
+	users, err := userController.GetUser(c.Conn)
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		WriteJson(w, http.StatusBadRequest, err.Error)
 		return
 	}
 
-	w.Write(data)
+	WriteJson(w, http.StatusOK, users)
 }
 
 func (c CourseHub) PostUsersAvatar(w http.ResponseWriter, r *http.Request) {
@@ -119,3 +122,11 @@ func (c CourseHub) PostUsersSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 var _ ServerInterface = (*CourseHub)(nil)
+
+// Напиши функцию которая будет красиво отдавать json вместе с данными и кодом статуса
+
+func WriteJson(w http.ResponseWriter, status int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(data)
+}

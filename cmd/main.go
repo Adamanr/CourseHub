@@ -1,17 +1,33 @@
 package main
 
 import (
-	"CourseHub/internal/router/api"
+	api2 "CourseHub/internal/handler/api"
+	"context"
 	"github.com/go-chi/chi/v5"
+	middleware2 "github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5"
 	middleware "github.com/oapi-codegen/nethttp-middleware"
+
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 )
 
+func connectDB() (*pgx.Conn, error) {
+	url := "postgres://postgres:admin21@localhost:5431/courseHub"
+	conn, err := pgx.Connect(context.Background(), url)
+	if err != nil {
+		slog.Error("Error connecting to database", err)
+		return nil, err
+	}
+
+	return conn, nil
+}
+
 func main() {
 
-	swagger, err := api.GetSwagger()
+	swagger, err := api2.GetSwagger()
 	if err != nil {
 		panic(err)
 	}
@@ -19,8 +35,14 @@ func main() {
 	swagger.Servers = nil
 	r := chi.NewRouter()
 
-	curseHub := api.NewCourseHub()
-	api.HandlerFromMux(curseHub, r)
+	conn, err := connectDB()
+	if err != nil {
+		panic(err)
+	}
+
+	curseHub := api2.NewCourseHub(conn)
+	r.Use(middleware2.Logger)
+	api2.HandlerFromMux(curseHub, r)
 
 	h := middleware.OapiRequestValidator(swagger)(r)
 
