@@ -2,6 +2,8 @@ package api
 
 import (
 	userController "CourseHub/internal/handler/user"
+	"CourseHub/internal/storage/enitity/course"
+	"CourseHub/internal/storage/enitity/playlist"
 	"encoding/json"
 	"github.com/jackc/pgx/v5"
 	"net/http"
@@ -38,7 +40,7 @@ func (c CourseHub) DeleteCourseId(w http.ResponseWriter, r *http.Request, id int
 
 func (c CourseHub) GetCourse(w http.ResponseWriter, r *http.Request, id int) {
 	//TODO implement me
-	w.Write([]byte("Hello"))
+	panic("implement me")
 }
 
 func (c CourseHub) PutCourseId(w http.ResponseWriter, r *http.Request, id int) {
@@ -47,13 +49,24 @@ func (c CourseHub) PutCourseId(w http.ResponseWriter, r *http.Request, id int) {
 }
 
 func (c CourseHub) GetCourses(w http.ResponseWriter, r *http.Request, params GetCoursesParams) {
-	//TODO implement me
-	w.Write([]byte("Hello"))
+	courses, err := course.GetCourses(c.Conn)
+	if err != nil {
+		WriteJson(w, http.StatusBadRequest, err.Error)
+		return
+	}
+
+	WriteJson(w, http.StatusOK, courses)
+
 }
 
 func (c CourseHub) GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams) {
-	//TODO implement me
-	panic("implement me")
+	playlists, err := playlist.GetPlaylists(c.Conn)
+	if err != nil {
+		WriteJson(w, http.StatusBadRequest, err.Error)
+		return
+	}
+
+	WriteJson(w, http.StatusOK, playlists)
 }
 
 func (c CourseHub) PostPlaylistsImage(w http.ResponseWriter, r *http.Request) {

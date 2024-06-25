@@ -537,15 +537,6 @@ paths:
             application/json:
               schema:
                 $ref:  '#/components/schemas/InternalServiceError'
-  /pong:
-    get:
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: string
   /playlists/new:
     post:
       tags:
@@ -628,9 +619,6 @@ components:
         course_image_id:
           type: string
           example: "im131asd21zas"
-        course_image_url:
-          type: string
-          example: https://cdn.pixabay.com/photo/2015/04/23/22/09/37/blank-profile-picture-973460_960_720.png
         status:
           type: string
           enum:
@@ -639,6 +627,16 @@ components:
             - expired
             - open
             - deleted
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        category:
+          type: array
+          items:
+            type: string
     InternalServiceError:
       type: object
       properties:
@@ -731,21 +729,27 @@ components:
         title:
           type: string
           example: Java
+        image_id:
+          type: string
+          example: im131asd21zas
         description:
           type: string
           example: Java
-        playlist_image_id:
-          type: string
-          example: im131asd21zas
-        courses:
+        courses_ids:
           type: array
           items:
-            $ref:  '#/components/schemas/Course'
-            description: List of course
+            type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
       required:
         - title
         - author_id
-    Playlists:
+    Playlists:  
       type: array
       items:
         $ref: '#/components/schemas/Playlist'

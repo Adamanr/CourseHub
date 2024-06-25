@@ -5,4 +5,4 @@ generate:
   embedded-spec: true
 compatibility:
   apply-chi-middleware-first-to-last: true
-output: ../../internal/router/api/api.gen.go
+output: ../../internal/handler/api/api.gen.go
