@@ -8,6 +8,11 @@ import (
 
 type CourseHub struct{}
 
+func (c CourseHub) Pong(w http.ResponseWriter, r *http.Request) {
+	//TODO implement me
+	w.Write([]byte("Ping"))
+}
+
 func NewCourseHub() *CourseHub {
 	return &CourseHub{}
 }
@@ -28,7 +33,7 @@ func (c CourseHub) DeleteCourseId(w http.ResponseWriter, r *http.Request, id int
 
 func (c CourseHub) GetCourse(w http.ResponseWriter, r *http.Request, id int) {
 	//TODO implement me
-	panic("implement me")
+	w.Write([]byte("Hello"))
 }
 
 func (c CourseHub) PutCourseId(w http.ResponseWriter, r *http.Request, id int) {
@@ -36,9 +41,9 @@ func (c CourseHub) PutCourseId(w http.ResponseWriter, r *http.Request, id int) {
 	panic("implement me")
 }
 
-func (c CourseHub) ListCourses(w http.ResponseWriter, r *http.Request, params ListCoursesParams) {
+func (c CourseHub) GetCourses(w http.ResponseWriter, r *http.Request, params GetCoursesParams) {
 	//TODO implement me
-	panic("implement me")
+	w.Write([]byte("Hello"))
 }
 
 func (c CourseHub) GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams) {

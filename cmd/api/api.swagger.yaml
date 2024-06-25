@@ -21,13 +21,15 @@ tags:
     description: Список операций с плейлистами
   - name: users
     description: Список операций с пользователями
+  - name: pong
+    description: pong
 paths:
   /courses:
     get:
       tags:
         - courses
       summary: List all courses
-      operationId: listCourses
+      operationId: getCourses
       parameters:
         - name: limit
           in: query
@@ -186,6 +188,19 @@ paths:
             application/json:
               schema:
                 $ref:  '#/components/schemas/InternalServiceError'
+  /pong:
+    get:
+      tags:
+        - pong
+      summary: pong
+      operationId: pong
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: string
   /users:
     get:
       tags:
@@ -568,6 +583,7 @@ paths:
                 type: object
                 additionalProperties: {
                   type: string, format: binary
+
                 }
 components:
   schemas:
