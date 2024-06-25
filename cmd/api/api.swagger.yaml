@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Swagger Petstore - OpenAPI 3.0
-  description: |-
+  title: Swagger для проекта CourseHub
+  description:
     Основная документация по Swagger.
   contact:
     url: https://t.me/CringeINC
@@ -165,6 +165,14 @@ paths:
       tags:
         - courses
       summary: Delete course
+      parameters:
+        - name: id
+          in: path
+          description: 'description regarding param2'
+          required: true
+          schema:
+            type: integer
+            example: 1
       responses:
         '200':
           description: Successful operation
@@ -255,8 +263,16 @@ paths:
                 $ref:  '#/components/schemas/InternalServiceError'
     put:
       tags:
-        - user
+        - users
       summary: Update user
+      parameters:
+        - name: id
+          in: path
+          description: 'description regarding param2'
+          required: true
+          schema:
+            type: integer
+            example: 1
       responses:
         '200':
           description: Successful operation
@@ -272,8 +288,16 @@ paths:
                 $ref:  '#/components/schemas/InternalServiceError'
     delete:
       tags:
-        - user
+        - users
       summary: Delete user
+      parameters:
+        - name: id
+          in: path
+          description: 'description regarding param2'
+          required: true
+          schema:
+            type: integer
+            example: 1
       responses:
         '200':
           description: Successful operation
@@ -478,6 +502,13 @@ paths:
       tags:
         - playlists
       summary: Delete playlist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
       responses:
         '200':
           description: Successful operation
