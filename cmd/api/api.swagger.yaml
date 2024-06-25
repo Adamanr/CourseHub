@@ -537,6 +537,15 @@ paths:
             application/json:
               schema:
                 $ref:  '#/components/schemas/InternalServiceError'
+  /pong:
+    get:
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: string
   /playlists/new:
     post:
       tags:
@@ -625,6 +634,7 @@ components:
         status:
           type: string
           enum:
+            - personal
             - closed
             - expired
             - open
