@@ -70,6 +70,7 @@ paths:
       tags:
         - courses
       summary: Create course
+      operationId: createCourse
       responses:
         '200':
           description: Successful operation
@@ -83,18 +84,27 @@ paths:
             application/json:
               schema:
                 $ref:  '#/components/schemas/InternalServiceError'
-  /course/image:
+  /course/image/{user_id}:
     post:
       tags:
         - courses
       summary: Upload image
+      operationId: uploadCourseImage
+      parameters:
+        - name: user_id
+          in: path
+          description:  'description regarding param2'
+          required: true
+          schema:
+            type: integer
       requestBody:
         description: 'image url path'
         required: true
         content:
           multipart/form-data:
             schema:
-              type: string
+              type: object
+              additionalProperties:  {}
       responses:
         '200':
           description: Successful operation
@@ -116,7 +126,7 @@ paths:
       tags:
         - courses
       summary: Get course by id
-      operationId: getCourse
+      operationId: getCourseById
       parameters:
         - name: id
           in: path
@@ -142,6 +152,7 @@ paths:
       tags:
         - courses
       summary: Update course
+      operationId: updateCourse
       parameters:
         - name: id
           in: path
@@ -167,6 +178,7 @@ paths:
       tags:
         - courses
       summary: Delete course
+      operationId: deleteCourse
       parameters:
         - name: id
           in: path
@@ -206,6 +218,7 @@ paths:
       tags:
         - users
       summary: List all users
+      operationId: getUsers
       parameters:
         - name: limit
           in: query
@@ -235,7 +248,6 @@ paths:
           schema:
             type: string
             example: "orderBy=author:desc"
-      operationId: getUsers
       responses:
         '200':
           description: Successful operation
@@ -254,7 +266,7 @@ paths:
       tags:
         - users
       summary: Get user by id
-      operationId: getUser
+      operationId: getUserById
       parameters:
         - name: id
           in: path
@@ -280,6 +292,7 @@ paths:
       tags:
         - users
       summary: Update user
+      operationId: updateUser
       parameters:
         - name: id
           in: path
@@ -305,6 +318,7 @@ paths:
       tags:
         - users
       summary: Delete user
+      operationId: deleteUser
       parameters:
         - name: id
           in: path
@@ -331,6 +345,7 @@ paths:
       tags:
         - users
       summary: Upload avatar
+      operationId: uploadUserAvatar
       requestBody:
         description:  'avatar url path'
         required: true
@@ -359,6 +374,7 @@ paths:
       tags:
         - users
       summary: Create user
+      operationId: userSignUp
       requestBody:
         description:  'Sign up new user'
         required: true
@@ -384,6 +400,7 @@ paths:
       tags:
         - users
       summary: Authorize user
+      operationId: userSignIn
       requestBody:
         description:  'Sign in new user'
         required: true
@@ -409,6 +426,7 @@ paths:
       tags:
         - playlists
       summary: List all playlists
+      operationId: getPlaylists
       parameters:
         - name: limit
           in: query
@@ -469,6 +487,7 @@ paths:
       tags:
         - playlists
       summary: Get playlist by id
+      operationId: getPlaylistById
       parameters:
         - name: id
           in: path
@@ -493,6 +512,7 @@ paths:
       tags:
         - playlists
       summary: Update playlist
+      operationId: updatePlaylist
       parameters:
         - name: id
           in: path
@@ -517,6 +537,7 @@ paths:
       tags:
         - playlists
       summary: Delete playlist
+      operationId: deletePlaylist
       parameters:
         - name: id
           in: path
@@ -537,20 +558,12 @@ paths:
             application/json:
               schema:
                 $ref:  '#/components/schemas/InternalServiceError'
-  /pong:
-    get:
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: string
   /playlists/new:
     post:
       tags:
         - playlists
       summary: Create playlist
+      operationId: createPlaylist
       requestBody:
         description:  'Create new playlist'
         required: true
@@ -576,6 +589,7 @@ paths:
       tags:
         - playlists
       summary: Upload image to playlist
+      operationId: uploadImage
       requestBody:
         description: 'avatar url path'
         required: true
@@ -628,9 +642,6 @@ components:
         course_image_id:
           type: string
           example: "im131asd21zas"
-        course_image_url:
-          type: string
-          example: https://cdn.pixabay.com/photo/2015/04/23/22/09/37/blank-profile-picture-973460_960_720.png
         status:
           type: string
           enum:
@@ -639,6 +650,16 @@ components:
             - expired
             - open
             - deleted
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        category:
+          type: array
+          items:
+            type: string
     InternalServiceError:
       type: object
       properties:
@@ -731,17 +752,23 @@ components:
         title:
           type: string
           example: Java
+        image_id:
+          type: string
+          example: im131asd21zas
         description:
           type: string
           example: Java
-        playlist_image_id:
-          type: string
-          example: im131asd21zas
-        courses:
+        courses_ids:
           type: array
           items:
-            $ref:  '#/components/schemas/Course'
-            description: List of course
+            type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
       required:
         - title
         - author_id

@@ -21,10 +21,11 @@ import (
 
 // Defines values for CourseStatus.
 const (
-	Closed  CourseStatus = "closed"
-	Deleted CourseStatus = "deleted"
-	Expired CourseStatus = "expired"
-	Open    CourseStatus = "open"
+	Closed   CourseStatus = "closed"
+	Deleted  CourseStatus = "deleted"
+	Expired  CourseStatus = "expired"
+	Open     CourseStatus = "open"
+	Personal CourseStatus = "personal"
 )
 
 // Defines values for UserRole.
@@ -47,16 +48,18 @@ const (
 
 // Course defines model for Course.
 type Course struct {
-	AuthorId       *int          `json:"author_id,omitempty"`
-	CourseImageId  *string       `json:"course_image_id,omitempty"`
-	CourseImageUrl *string       `json:"course_image_url,omitempty"`
-	Description    *string       `json:"description,omitempty"`
-	EndDate        *time.Time    `json:"endDate,omitempty"`
-	Id             *int32        `json:"id,omitempty"`
-	Price          *float32      `json:"price,omitempty"`
-	StartDate      *time.Time    `json:"startDate,omitempty"`
-	Status         *CourseStatus `json:"status,omitempty"`
-	Title          *string       `json:"title,omitempty"`
+	AuthorId      *int          `json:"author_id,omitempty"`
+	Category      *[]string     `json:"category,omitempty"`
+	CourseImageId *string       `json:"course_image_id,omitempty"`
+	CreatedAt     *time.Time    `json:"createdAt,omitempty"`
+	Description   *string       `json:"description,omitempty"`
+	EndDate       *time.Time    `json:"endDate,omitempty"`
+	Id            *int32        `json:"id,omitempty"`
+	Price         *float32      `json:"price,omitempty"`
+	StartDate     *time.Time    `json:"startDate,omitempty"`
+	Status        *CourseStatus `json:"status,omitempty"`
+	Title         *string       `json:"title,omitempty"`
+	UpdatedAt     *time.Time    `json:"updatedAt,omitempty"`
 }
 
 // CourseStatus defines model for Course.Status.
@@ -73,12 +76,14 @@ type InternalServiceError struct {
 
 // Playlist defines model for Playlist.
 type Playlist struct {
-	AuthorId        int       `json:"author_id"`
-	Courses         *[]Course `json:"courses,omitempty"`
-	Description     *string   `json:"description,omitempty"`
-	Id              *int64    `json:"id,omitempty"`
-	PlaylistImageId *string   `json:"playlist_image_id,omitempty"`
-	Title           string    `json:"title"`
+	AuthorId    int        `json:"author_id"`
+	CoursesIds  *[]int     `json:"courses_ids,omitempty"`
+	CreatedAt   *time.Time `json:"createdAt,omitempty"`
+	Description *string    `json:"description,omitempty"`
+	Id          *int64     `json:"id,omitempty"`
+	ImageId     *string    `json:"image_id,omitempty"`
+	Title       string     `json:"title"`
+	UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
 }
 
 // Playlists defines model for Playlists.
@@ -116,8 +121,8 @@ type UserSignUp struct {
 // Users List of user object
 type Users = []User
 
-// PostCourseImageMultipartBody defines parameters for PostCourseImage.
-type PostCourseImageMultipartBody = string
+// UploadCourseImageMultipartBody defines parameters for UploadCourseImage.
+type UploadCourseImageMultipartBody map[string]interface{}
 
 // GetCoursesParams defines parameters for GetCourses.
 type GetCoursesParams struct {
@@ -144,8 +149,8 @@ type GetPlaylistsParams struct {
 	OrderBy *string `form:"orderBy,omitempty" json:"orderBy,omitempty"`
 }
 
-// PostPlaylistsImageMultipartBody defines parameters for PostPlaylistsImage.
-type PostPlaylistsImageMultipartBody = string
+// UploadImageMultipartBody defines parameters for UploadImage.
+type UploadImageMultipartBody = string
 
 // GetUsersParams defines parameters for GetUsers.
 type GetUsersParams struct {
@@ -160,44 +165,44 @@ type GetUsersParams struct {
 // GetUsersParamsRole defines parameters for GetUsers.
 type GetUsersParamsRole string
 
-// PostUsersAvatarMultipartBody defines parameters for PostUsersAvatar.
-type PostUsersAvatarMultipartBody = string
+// UploadUserAvatarMultipartBody defines parameters for UploadUserAvatar.
+type UploadUserAvatarMultipartBody = string
 
-// PostCourseImageMultipartRequestBody defines body for PostCourseImage for multipart/form-data ContentType.
-type PostCourseImageMultipartRequestBody = PostCourseImageMultipartBody
+// UploadCourseImageMultipartRequestBody defines body for UploadCourseImage for multipart/form-data ContentType.
+type UploadCourseImageMultipartRequestBody UploadCourseImageMultipartBody
 
-// PostPlaylistsImageMultipartRequestBody defines body for PostPlaylistsImage for multipart/form-data ContentType.
-type PostPlaylistsImageMultipartRequestBody = PostPlaylistsImageMultipartBody
+// UploadImageMultipartRequestBody defines body for UploadImage for multipart/form-data ContentType.
+type UploadImageMultipartRequestBody = UploadImageMultipartBody
 
-// PostPlaylistsNewJSONRequestBody defines body for PostPlaylistsNew for application/json ContentType.
-type PostPlaylistsNewJSONRequestBody = Playlist
+// CreatePlaylistJSONRequestBody defines body for CreatePlaylist for application/json ContentType.
+type CreatePlaylistJSONRequestBody = Playlist
 
-// PostUsersAvatarMultipartRequestBody defines body for PostUsersAvatar for multipart/form-data ContentType.
-type PostUsersAvatarMultipartRequestBody = PostUsersAvatarMultipartBody
+// UploadUserAvatarMultipartRequestBody defines body for UploadUserAvatar for multipart/form-data ContentType.
+type UploadUserAvatarMultipartRequestBody = UploadUserAvatarMultipartBody
 
-// PostUsersSignInJSONRequestBody defines body for PostUsersSignIn for application/json ContentType.
-type PostUsersSignInJSONRequestBody = UserSignIn
+// UserSignInJSONRequestBody defines body for UserSignIn for application/json ContentType.
+type UserSignInJSONRequestBody = UserSignIn
 
-// PostUsersSignUpJSONRequestBody defines body for PostUsersSignUp for application/json ContentType.
-type PostUsersSignUpJSONRequestBody = UserSignUp
+// UserSignUpJSONRequestBody defines body for UserSignUp for application/json ContentType.
+type UserSignUpJSONRequestBody = UserSignUp
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Upload image
-	// (POST /course/image)
-	PostCourseImage(w http.ResponseWriter, r *http.Request)
+	// (POST /course/image/{user_id})
+	UploadCourseImage(w http.ResponseWriter, r *http.Request, userId int)
 	// Create course
 	// (POST /course/new)
-	PostCourseNew(w http.ResponseWriter, r *http.Request)
+	CreateCourse(w http.ResponseWriter, r *http.Request)
 	// Delete course
 	// (DELETE /course/{id})
-	DeleteCourseId(w http.ResponseWriter, r *http.Request, id int)
+	DeleteCourse(w http.ResponseWriter, r *http.Request, id int)
 	// Get course by id
 	// (GET /course/{id})
-	GetCourse(w http.ResponseWriter, r *http.Request, id int)
+	GetCourseById(w http.ResponseWriter, r *http.Request, id int)
 	// Update course
 	// (PUT /course/{id})
-	PutCourseId(w http.ResponseWriter, r *http.Request, id int)
+	UpdateCourse(w http.ResponseWriter, r *http.Request, id int)
 	// List all courses
 	// (GET /courses)
 	GetCourses(w http.ResponseWriter, r *http.Request, params GetCoursesParams)
@@ -206,43 +211,43 @@ type ServerInterface interface {
 	GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams)
 	// Upload image to playlist
 	// (POST /playlists/image)
-	PostPlaylistsImage(w http.ResponseWriter, r *http.Request)
+	UploadImage(w http.ResponseWriter, r *http.Request)
 	// Create playlist
 	// (POST /playlists/new)
-	PostPlaylistsNew(w http.ResponseWriter, r *http.Request)
+	CreatePlaylist(w http.ResponseWriter, r *http.Request)
 	// Delete playlist
 	// (DELETE /playlists/{id})
-	DeletePlaylistsId(w http.ResponseWriter, r *http.Request, id int)
+	DeletePlaylist(w http.ResponseWriter, r *http.Request, id int)
 	// Get playlist by id
 	// (GET /playlists/{id})
-	GetPlaylistsId(w http.ResponseWriter, r *http.Request, id int)
+	GetPlaylistById(w http.ResponseWriter, r *http.Request, id int)
 	// Update playlist
 	// (PUT /playlists/{id})
-	PutPlaylistsId(w http.ResponseWriter, r *http.Request, id int)
+	UpdatePlaylist(w http.ResponseWriter, r *http.Request, id int)
 	// pong
 	// (GET /pong)
 	Pong(w http.ResponseWriter, r *http.Request)
 	// Delete user
 	// (DELETE /user/{id})
-	DeleteUserId(w http.ResponseWriter, r *http.Request, id int)
+	DeleteUser(w http.ResponseWriter, r *http.Request, id int)
 	// Get user by id
 	// (GET /user/{id})
-	GetUser(w http.ResponseWriter, r *http.Request, id int)
+	GetUserById(w http.ResponseWriter, r *http.Request, id int)
 	// Update user
 	// (PUT /user/{id})
-	PutUserId(w http.ResponseWriter, r *http.Request, id int)
+	UpdateUser(w http.ResponseWriter, r *http.Request, id int)
 	// List all users
 	// (GET /users)
 	GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams)
 	// Upload avatar
 	// (POST /users/avatar)
-	PostUsersAvatar(w http.ResponseWriter, r *http.Request)
+	UploadUserAvatar(w http.ResponseWriter, r *http.Request)
 	// Authorize user
 	// (POST /users/sign_in)
-	PostUsersSignIn(w http.ResponseWriter, r *http.Request)
+	UserSignIn(w http.ResponseWriter, r *http.Request)
 	// Create user
 	// (POST /users/sign_up)
-	PostUsersSignUp(w http.ResponseWriter, r *http.Request)
+	UserSignUp(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -250,32 +255,32 @@ type ServerInterface interface {
 type Unimplemented struct{}
 
 // Upload image
-// (POST /course/image)
-func (_ Unimplemented) PostCourseImage(w http.ResponseWriter, r *http.Request) {
+// (POST /course/image/{user_id})
+func (_ Unimplemented) UploadCourseImage(w http.ResponseWriter, r *http.Request, userId int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Create course
 // (POST /course/new)
-func (_ Unimplemented) PostCourseNew(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) CreateCourse(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Delete course
 // (DELETE /course/{id})
-func (_ Unimplemented) DeleteCourseId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) DeleteCourse(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get course by id
 // (GET /course/{id})
-func (_ Unimplemented) GetCourse(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) GetCourseById(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Update course
 // (PUT /course/{id})
-func (_ Unimplemented) PutCourseId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) UpdateCourse(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -293,31 +298,31 @@ func (_ Unimplemented) GetPlaylists(w http.ResponseWriter, r *http.Request, para
 
 // Upload image to playlist
 // (POST /playlists/image)
-func (_ Unimplemented) PostPlaylistsImage(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) UploadImage(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Create playlist
 // (POST /playlists/new)
-func (_ Unimplemented) PostPlaylistsNew(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) CreatePlaylist(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Delete playlist
 // (DELETE /playlists/{id})
-func (_ Unimplemented) DeletePlaylistsId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) DeletePlaylist(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get playlist by id
 // (GET /playlists/{id})
-func (_ Unimplemented) GetPlaylistsId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) GetPlaylistById(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Update playlist
 // (PUT /playlists/{id})
-func (_ Unimplemented) PutPlaylistsId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) UpdatePlaylist(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -329,19 +334,19 @@ func (_ Unimplemented) Pong(w http.ResponseWriter, r *http.Request) {
 
 // Delete user
 // (DELETE /user/{id})
-func (_ Unimplemented) DeleteUserId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) DeleteUser(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Get user by id
 // (GET /user/{id})
-func (_ Unimplemented) GetUser(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) GetUserById(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Update user
 // (PUT /user/{id})
-func (_ Unimplemented) PutUserId(w http.ResponseWriter, r *http.Request, id int) {
+func (_ Unimplemented) UpdateUser(w http.ResponseWriter, r *http.Request, id int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -353,19 +358,19 @@ func (_ Unimplemented) GetUsers(w http.ResponseWriter, r *http.Request, params G
 
 // Upload avatar
 // (POST /users/avatar)
-func (_ Unimplemented) PostUsersAvatar(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) UploadUserAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Authorize user
 // (POST /users/sign_in)
-func (_ Unimplemented) PostUsersSignIn(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) UserSignIn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Create user
 // (POST /users/sign_up)
-func (_ Unimplemented) PostUsersSignUp(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) UserSignUp(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -378,12 +383,23 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// PostCourseImage operation middleware
-func (siw *ServerInterfaceWrapper) PostCourseImage(w http.ResponseWriter, r *http.Request) {
+// UploadCourseImage operation middleware
+func (siw *ServerInterfaceWrapper) UploadCourseImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
+	var err error
+
+	// ------------- Path parameter "user_id" -------------
+	var userId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "user_id", chi.URLParam(r, "user_id"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "user_id", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostCourseImage(w, r)
+		siw.Handler.UploadCourseImage(w, r, userId)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -393,12 +409,12 @@ func (siw *ServerInterfaceWrapper) PostCourseImage(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PostCourseNew operation middleware
-func (siw *ServerInterfaceWrapper) PostCourseNew(w http.ResponseWriter, r *http.Request) {
+// CreateCourse operation middleware
+func (siw *ServerInterfaceWrapper) CreateCourse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostCourseNew(w, r)
+		siw.Handler.CreateCourse(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -408,8 +424,8 @@ func (siw *ServerInterfaceWrapper) PostCourseNew(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// DeleteCourseId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteCourseId(w http.ResponseWriter, r *http.Request) {
+// DeleteCourse operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCourse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -424,7 +440,7 @@ func (siw *ServerInterfaceWrapper) DeleteCourseId(w http.ResponseWriter, r *http
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteCourseId(w, r, id)
+		siw.Handler.DeleteCourse(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -434,8 +450,8 @@ func (siw *ServerInterfaceWrapper) DeleteCourseId(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// GetCourse operation middleware
-func (siw *ServerInterfaceWrapper) GetCourse(w http.ResponseWriter, r *http.Request) {
+// GetCourseById operation middleware
+func (siw *ServerInterfaceWrapper) GetCourseById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -450,7 +466,7 @@ func (siw *ServerInterfaceWrapper) GetCourse(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetCourse(w, r, id)
+		siw.Handler.GetCourseById(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -460,8 +476,8 @@ func (siw *ServerInterfaceWrapper) GetCourse(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PutCourseId operation middleware
-func (siw *ServerInterfaceWrapper) PutCourseId(w http.ResponseWriter, r *http.Request) {
+// UpdateCourse operation middleware
+func (siw *ServerInterfaceWrapper) UpdateCourse(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -476,7 +492,7 @@ func (siw *ServerInterfaceWrapper) PutCourseId(w http.ResponseWriter, r *http.Re
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PutCourseId(w, r, id)
+		siw.Handler.UpdateCourse(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -598,12 +614,12 @@ func (siw *ServerInterfaceWrapper) GetPlaylists(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PostPlaylistsImage operation middleware
-func (siw *ServerInterfaceWrapper) PostPlaylistsImage(w http.ResponseWriter, r *http.Request) {
+// UploadImage operation middleware
+func (siw *ServerInterfaceWrapper) UploadImage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostPlaylistsImage(w, r)
+		siw.Handler.UploadImage(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -613,12 +629,12 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsImage(w http.ResponseWriter, r *
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PostPlaylistsNew operation middleware
-func (siw *ServerInterfaceWrapper) PostPlaylistsNew(w http.ResponseWriter, r *http.Request) {
+// CreatePlaylist operation middleware
+func (siw *ServerInterfaceWrapper) CreatePlaylist(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostPlaylistsNew(w, r)
+		siw.Handler.CreatePlaylist(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -628,8 +644,8 @@ func (siw *ServerInterfaceWrapper) PostPlaylistsNew(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// DeletePlaylistsId operation middleware
-func (siw *ServerInterfaceWrapper) DeletePlaylistsId(w http.ResponseWriter, r *http.Request) {
+// DeletePlaylist operation middleware
+func (siw *ServerInterfaceWrapper) DeletePlaylist(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -644,7 +660,7 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsId(w http.ResponseWriter, r *h
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeletePlaylistsId(w, r, id)
+		siw.Handler.DeletePlaylist(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -654,8 +670,8 @@ func (siw *ServerInterfaceWrapper) DeletePlaylistsId(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// GetPlaylistsId operation middleware
-func (siw *ServerInterfaceWrapper) GetPlaylistsId(w http.ResponseWriter, r *http.Request) {
+// GetPlaylistById operation middleware
+func (siw *ServerInterfaceWrapper) GetPlaylistById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -670,7 +686,7 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsId(w http.ResponseWriter, r *http
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetPlaylistsId(w, r, id)
+		siw.Handler.GetPlaylistById(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -680,8 +696,8 @@ func (siw *ServerInterfaceWrapper) GetPlaylistsId(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PutPlaylistsId operation middleware
-func (siw *ServerInterfaceWrapper) PutPlaylistsId(w http.ResponseWriter, r *http.Request) {
+// UpdatePlaylist operation middleware
+func (siw *ServerInterfaceWrapper) UpdatePlaylist(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -696,7 +712,7 @@ func (siw *ServerInterfaceWrapper) PutPlaylistsId(w http.ResponseWriter, r *http
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PutPlaylistsId(w, r, id)
+		siw.Handler.UpdatePlaylist(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -721,8 +737,8 @@ func (siw *ServerInterfaceWrapper) Pong(w http.ResponseWriter, r *http.Request) 
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// DeleteUserId operation middleware
-func (siw *ServerInterfaceWrapper) DeleteUserId(w http.ResponseWriter, r *http.Request) {
+// DeleteUser operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -737,7 +753,7 @@ func (siw *ServerInterfaceWrapper) DeleteUserId(w http.ResponseWriter, r *http.R
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DeleteUserId(w, r, id)
+		siw.Handler.DeleteUser(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -747,8 +763,8 @@ func (siw *ServerInterfaceWrapper) DeleteUserId(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// GetUser operation middleware
-func (siw *ServerInterfaceWrapper) GetUser(w http.ResponseWriter, r *http.Request) {
+// GetUserById operation middleware
+func (siw *ServerInterfaceWrapper) GetUserById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -763,7 +779,7 @@ func (siw *ServerInterfaceWrapper) GetUser(w http.ResponseWriter, r *http.Reques
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetUser(w, r, id)
+		siw.Handler.GetUserById(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -773,8 +789,8 @@ func (siw *ServerInterfaceWrapper) GetUser(w http.ResponseWriter, r *http.Reques
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PutUserId operation middleware
-func (siw *ServerInterfaceWrapper) PutUserId(w http.ResponseWriter, r *http.Request) {
+// UpdateUser operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var err error
@@ -789,7 +805,7 @@ func (siw *ServerInterfaceWrapper) PutUserId(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PutUserId(w, r, id)
+		siw.Handler.UpdateUser(w, r, id)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -843,12 +859,12 @@ func (siw *ServerInterfaceWrapper) GetUsers(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PostUsersAvatar operation middleware
-func (siw *ServerInterfaceWrapper) PostUsersAvatar(w http.ResponseWriter, r *http.Request) {
+// UploadUserAvatar operation middleware
+func (siw *ServerInterfaceWrapper) UploadUserAvatar(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostUsersAvatar(w, r)
+		siw.Handler.UploadUserAvatar(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -858,12 +874,12 @@ func (siw *ServerInterfaceWrapper) PostUsersAvatar(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PostUsersSignIn operation middleware
-func (siw *ServerInterfaceWrapper) PostUsersSignIn(w http.ResponseWriter, r *http.Request) {
+// UserSignIn operation middleware
+func (siw *ServerInterfaceWrapper) UserSignIn(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostUsersSignIn(w, r)
+		siw.Handler.UserSignIn(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -873,12 +889,12 @@ func (siw *ServerInterfaceWrapper) PostUsersSignIn(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// PostUsersSignUp operation middleware
-func (siw *ServerInterfaceWrapper) PostUsersSignUp(w http.ResponseWriter, r *http.Request) {
+// UserSignUp operation middleware
+func (siw *ServerInterfaceWrapper) UserSignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostUsersSignUp(w, r)
+		siw.Handler.UserSignUp(w, r)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -1002,19 +1018,19 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/course/image", wrapper.PostCourseImage)
+		r.Post(options.BaseURL+"/course/image/{user_id}", wrapper.UploadCourseImage)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/course/new", wrapper.PostCourseNew)
+		r.Post(options.BaseURL+"/course/new", wrapper.CreateCourse)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/course/{id}", wrapper.DeleteCourseId)
+		r.Delete(options.BaseURL+"/course/{id}", wrapper.DeleteCourse)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/course/{id}", wrapper.GetCourse)
+		r.Get(options.BaseURL+"/course/{id}", wrapper.GetCourseById)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/course/{id}", wrapper.PutCourseId)
+		r.Put(options.BaseURL+"/course/{id}", wrapper.UpdateCourse)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/courses", wrapper.GetCourses)
@@ -1023,43 +1039,43 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/playlists", wrapper.GetPlaylists)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/playlists/image", wrapper.PostPlaylistsImage)
+		r.Post(options.BaseURL+"/playlists/image", wrapper.UploadImage)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/playlists/new", wrapper.PostPlaylistsNew)
+		r.Post(options.BaseURL+"/playlists/new", wrapper.CreatePlaylist)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/playlists/{id}", wrapper.DeletePlaylistsId)
+		r.Delete(options.BaseURL+"/playlists/{id}", wrapper.DeletePlaylist)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/playlists/{id}", wrapper.GetPlaylistsId)
+		r.Get(options.BaseURL+"/playlists/{id}", wrapper.GetPlaylistById)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/playlists/{id}", wrapper.PutPlaylistsId)
+		r.Put(options.BaseURL+"/playlists/{id}", wrapper.UpdatePlaylist)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/pong", wrapper.Pong)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/user/{id}", wrapper.DeleteUserId)
+		r.Delete(options.BaseURL+"/user/{id}", wrapper.DeleteUser)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/user/{id}", wrapper.GetUser)
+		r.Get(options.BaseURL+"/user/{id}", wrapper.GetUserById)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/user/{id}", wrapper.PutUserId)
+		r.Put(options.BaseURL+"/user/{id}", wrapper.UpdateUser)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/users", wrapper.GetUsers)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/users/avatar", wrapper.PostUsersAvatar)
+		r.Post(options.BaseURL+"/users/avatar", wrapper.UploadUserAvatar)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/users/sign_in", wrapper.PostUsersSignIn)
+		r.Post(options.BaseURL+"/users/sign_in", wrapper.UserSignIn)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/users/sign_up", wrapper.PostUsersSignUp)
+		r.Post(options.BaseURL+"/users/sign_up", wrapper.UserSignUp)
 	})
 
 	return r
@@ -1068,40 +1084,40 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"qQTRvw63Dv8IAAD//9CS7KgrOgAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
