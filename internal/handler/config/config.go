@@ -40,8 +40,6 @@ func NewService(path string) (*CourseHub, error) {
 		return nil, err
 	}
 
-	router
-
 	return &CourseHub{
 		ConnDB:   conn,
 		Database: config.Database,

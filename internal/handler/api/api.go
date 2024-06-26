@@ -2,9 +2,12 @@ package api
 
 import (
 	courseController "CourseHub/internal/handler/course"
-	playlistController "CourseHub/internal/handler/playlsit"
+	playlistController "CourseHub/internal/handler/playlist"
 	userController "CourseHub/internal/handler/user"
 	courseEntity "CourseHub/internal/storage/enitity/course"
+	"CourseHub/internal/storage/enitity/playlist"
+	playlistEntity "CourseHub/internal/storage/enitity/playlist"
+	userEntity "CourseHub/internal/storage/enitity/user"
 	"encoding/json"
 	"github.com/jackc/pgx/v5"
 	"io"
@@ -130,18 +133,36 @@ func (c CourseHub) UploadImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c CourseHub) CreatePlaylist(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
-}
+	cHub := playlistController.CourseHub(c)
 
-func (c CourseHub) GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams) {
-	playlists, err := playlistController.GetPlaylists(c.Conn)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		WriteJson(w, http.StatusBadRequest, err.Error)
 		return
 	}
 
-	WriteJson(w, http.StatusOK, playlists)
+	var playlist playlistEntity.Playlist
+	if unmErr := json.Unmarshal(body, &playlist); unmErr != nil {
+		WriteJson(w, http.StatusBadRequest, unmErr.Error)
+		return
+	}
+
+	if createErr := cHub.CreatePlaylist(&playlist); createErr != nil {
+		WriteJson(w, http.StatusBadRequest, createErr.Error)
+		return
+	}
+
+	WriteJson(w, http.StatusOK, playlist)
+}
+
+func (c CourseHub) DeletePlaylist(w http.ResponseWriter, r *http.Request, id int) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (c CourseHub) GetPlaylistById(w http.ResponseWriter, r *http.Request, id int) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (c CourseHub) UpdatePlaylist(w http.ResponseWriter, r *http.Request, id int) {
@@ -170,13 +191,50 @@ func (c CourseHub) UploadUserAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c CourseHub) UserSignIn(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	cHub := userController.CourseHub(c)
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		WriteJson(w, http.StatusBadRequest, err.Error)
+		return
+	}
+
+	var user userEntity.User
+	if unmErr := json.Unmarshal(body, &user); unmErr != nil {
+		WriteJson(w, http.StatusBadRequest, unmErr.Error)
+		return
+	}
+
+	users, createErr := cHub.UserSignIn(user.Login, user.Password)
+	if createErr != nil {
+		WriteJson(w, http.StatusBadRequest, createErr.Error)
+		return
+	}
+
+	WriteJson(w, http.StatusOK, users)
 }
 
 func (c CourseHub) UserSignUp(w http.ResponseWriter, r *http.Request) {
-	//TODO implement me
-	panic("implement me")
+	cHub := userController.CourseHub(c)
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		WriteJson(w, http.StatusBadRequest, err.Error)
+		return
+	}
+
+	var user userEntity.User
+	if unmErr := json.Unmarshal(body, &user); unmErr != nil {
+		WriteJson(w, http.StatusBadRequest, unmErr.Error)
+		return
+	}
+
+	if createErr := cHub.UserSignUp(&user); createErr != nil {
+		WriteJson(w, http.StatusBadRequest, createErr.Error)
+		return
+	}
+
+	WriteJson(w, http.StatusOK, user)
 }
 
 func (c CourseHub) Pong(w http.ResponseWriter, r *http.Request) {
@@ -202,6 +260,16 @@ func (c CourseHub) GetCourses(w http.ResponseWriter, r *http.Request, params Get
 	WriteJson(w, http.StatusOK, courses)
 }
 
+func (c CourseHub) GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams) {
+	playlists, err := playlist.GetPlaylists(c.Conn)
+	if err != nil {
+		WriteJson(w, http.StatusBadRequest, err.Error)
+		return
+	}
+
+	WriteJson(w, http.StatusOK, playlists)
+}
+
 func (c CourseHub) GetUsers(w http.ResponseWriter, r *http.Request, params GetUsersParams) {
 	users, err := userController.GetUser(c.Conn)
 	if err != nil {
@@ -210,16 +278,6 @@ func (c CourseHub) GetUsers(w http.ResponseWriter, r *http.Request, params GetUs
 	}
 
 	WriteJson(w, http.StatusOK, users)
-}
-
-func (c CourseHub) DeletePlaylist(w http.ResponseWriter, r *http.Request, id int) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (c CourseHub) GetPlaylistById(w http.ResponseWriter, r *http.Request, id int) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func WriteJson(w http.ResponseWriter, status int, data interface{}) {
