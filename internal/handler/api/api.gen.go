@@ -149,8 +149,8 @@ type GetPlaylistsParams struct {
 	OrderBy *string `form:"orderBy,omitempty" json:"orderBy,omitempty"`
 }
 
-// UploadImageMultipartBody defines parameters for UploadImage.
-type UploadImageMultipartBody = string
+// UploadPlaylistImageMultipartBody defines parameters for UploadPlaylistImage.
+type UploadPlaylistImageMultipartBody = string
 
 // GetUsersParams defines parameters for GetUsers.
 type GetUsersParams struct {
@@ -171,11 +171,11 @@ type UploadUserAvatarMultipartBody = string
 // UploadCourseImageMultipartRequestBody defines body for UploadCourseImage for multipart/form-data ContentType.
 type UploadCourseImageMultipartRequestBody UploadCourseImageMultipartBody
 
-// UploadImageMultipartRequestBody defines body for UploadImage for multipart/form-data ContentType.
-type UploadImageMultipartRequestBody = UploadImageMultipartBody
-
 // CreatePlaylistJSONRequestBody defines body for CreatePlaylist for application/json ContentType.
 type CreatePlaylistJSONRequestBody = Playlist
+
+// UploadPlaylistImageMultipartRequestBody defines body for UploadPlaylistImage for multipart/form-data ContentType.
+type UploadPlaylistImageMultipartRequestBody = UploadPlaylistImageMultipartBody
 
 // UploadUserAvatarMultipartRequestBody defines body for UploadUserAvatar for multipart/form-data ContentType.
 type UploadUserAvatarMultipartRequestBody = UploadUserAvatarMultipartBody
@@ -209,9 +209,6 @@ type ServerInterface interface {
 	// List all playlists
 	// (GET /playlists)
 	GetPlaylists(w http.ResponseWriter, r *http.Request, params GetPlaylistsParams)
-	// Upload image to playlist
-	// (POST /playlists/image)
-	UploadImage(w http.ResponseWriter, r *http.Request)
 	// Create playlist
 	// (POST /playlists/new)
 	CreatePlaylist(w http.ResponseWriter, r *http.Request)
@@ -224,6 +221,9 @@ type ServerInterface interface {
 	// Update playlist
 	// (PUT /playlists/{id})
 	UpdatePlaylist(w http.ResponseWriter, r *http.Request, id int)
+	// Upload image to playlist
+	// (POST /playlists/{playlist_id}/image)
+	UploadPlaylistImage(w http.ResponseWriter, r *http.Request, playlistId int)
 	// pong
 	// (GET /pong)
 	Pong(w http.ResponseWriter, r *http.Request)
@@ -296,12 +296,6 @@ func (_ Unimplemented) GetPlaylists(w http.ResponseWriter, r *http.Request, para
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Upload image to playlist
-// (POST /playlists/image)
-func (_ Unimplemented) UploadImage(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // Create playlist
 // (POST /playlists/new)
 func (_ Unimplemented) CreatePlaylist(w http.ResponseWriter, r *http.Request) {
@@ -323,6 +317,12 @@ func (_ Unimplemented) GetPlaylistById(w http.ResponseWriter, r *http.Request, i
 // Update playlist
 // (PUT /playlists/{id})
 func (_ Unimplemented) UpdatePlaylist(w http.ResponseWriter, r *http.Request, id int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Upload image to playlist
+// (POST /playlists/{playlist_id}/image)
+func (_ Unimplemented) UploadPlaylistImage(w http.ResponseWriter, r *http.Request, playlistId int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -614,21 +614,6 @@ func (siw *ServerInterfaceWrapper) GetPlaylists(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
-// UploadImage operation middleware
-func (siw *ServerInterfaceWrapper) UploadImage(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UploadImage(w, r)
-	}))
-
-	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
-		handler = siw.HandlerMiddlewares[i](handler)
-	}
-
-	handler.ServeHTTP(w, r.WithContext(ctx))
-}
-
 // CreatePlaylist operation middleware
 func (siw *ServerInterfaceWrapper) CreatePlaylist(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -713,6 +698,32 @@ func (siw *ServerInterfaceWrapper) UpdatePlaylist(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdatePlaylist(w, r, id)
+	}))
+
+	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
+		handler = siw.HandlerMiddlewares[i](handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// UploadPlaylistImage operation middleware
+func (siw *ServerInterfaceWrapper) UploadPlaylistImage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "playlist_id" -------------
+	var playlistId int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "playlist_id", chi.URLParam(r, "playlist_id"), &playlistId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "playlist_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UploadPlaylistImage(w, r, playlistId)
 	}))
 
 	for i := len(siw.HandlerMiddlewares) - 1; i >= 0; i-- {
@@ -1039,9 +1050,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/playlists", wrapper.GetPlaylists)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/playlists/image", wrapper.UploadImage)
-	})
-	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/playlists/new", wrapper.CreatePlaylist)
 	})
 	r.Group(func(r chi.Router) {
@@ -1052,6 +1060,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/playlists/{id}", wrapper.UpdatePlaylist)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/playlists/{playlist_id}/image", wrapper.UploadPlaylistImage)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/pong", wrapper.Pong)
@@ -1084,40 +1095,40 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"qQTRvw63Dv8IAAD//9CS7KgrOgAA",
+	"H4sIAAAAAAAC/+xa72rcOhZ/FaPdj9PxJLl3oQOBbdNuN5dyKYR8KiEo9smMii35SnLSuWUgTWD3y7L3",
+	"DXbZNwjdhuambfoK8htdJNljz1iecdKkkGkgEI+tP+fP7xz9dKQ3KGBxwihQKVD/DRLBEGJsHjdYygXo",
+	"p4SzBLgkYN7jVA4Z3yWh/gGvcZxEgPorHSRHCaA+IlTCADgad1CAJQwYH+mWREJs+ufNhOSEDnSr/AXm",
+	"HI9MLzPxLonxAGanQSReWVvBIlxd+RUL1KmPFnDAEsJHUvfbZzzGEvVRiCU8kCQGV5cQRMBJIgmj05P9",
+	"hA+wqwPQ8AmW0H6GWWP1OmVHQuXaKnKZL+EkgKmODx92Hz6cNKVpvGdbCom5vJpIQmKZGocATWPUf4kS",
+	"4IJRHKEOCiImIEQdBK8Tws0TS4AibasIJIRoxzGkJDKCdhZMk/BqXipxwvZeQSD1IBahYgpdf+awj/ro",
+	"T36Jaz8HtZ8j2gG5TSqBUxxtAT8gATzlnPE68gMWzqhX9PME8APgHpiOLl/GIAQetOru1PVFhEcREbJ1",
+	"PPacAWkttktC4YrJSstaUH6DsKqnlGqQ/OUHp2GvmSZuGascfklN4PRf5lN1Ko7amePg9nCeQMLhrm0B",
+	"DgDjAyxxDSpoZXXthx+v7EGPCE8OwdsDIZ1JMsYkmu72ig3pX837bsDiayTKBgxEbEBmJJRDMDZwzJFg",
+	"IQ4Zb2sEzixQJj4p8uVzTHRGxGFs/sdgsrF+oNJmAcDBELg7V045bAYxVp/ChLkInYr7agDqoNexMTbF",
+	"sX6dat3HORC2yIBu0jocruUhh61/YkN6JUO3S++F6NvJtxedMkn2SYBr0Jc8hUn7PcYiwPSGdDWKTYUc",
+	"ek6E9Ni+p93pTVzdKjsY9NeBpgPztV11nrDAMeXfCA09lkovZhw8vKcftw7xYGCwnfII9dFQyqTv+8K+",
+	"7hJmQpfuM7tKUokDkyzL1qLv+7Ibg7+hbQCbP2/U8gtS/8neqs/qUr1Tn9Vp9pun3qtLdZGdqE/qTH3O",
+	"jtVp9g91rj98UZeFUF3UQREJgFqumuP/UaJDz1vt9maFPjw87GLztcv4wM+7Cv/55sbTn7eePljt9rpD",
+	"GUeVRQLlU2mBPprpsyN1qc7UhZbJs7Ti7+ke6qAD4MJqs9LtdXt6EE2ccEJQH611e12NhwTLobG8b9dj",
+	"36xh/hvt5V0Sjg3cmV3rNegNCjdD1EfbScRwaCfc1J3MaBzHIA1+Xs56s/LL4zDAPCR04JkumnPqcDDi",
+	"oE41c+gUU81IFvQWWS66MN6xrUHIxywcFSgAalSI00iSBHPp61T+IMQSl1sNsyyFIdES4uhFNcjrcTKu",
+	"YcZYzkt55OVaTAtt8qpIGM1p4mqvNyMcTpIoj3P/lbDBvlCyck3aIxTzEWpO8M2ib6VBAELsp5E3cbLu",
+	"+OMVZZyXBJy81iFLMxEVaRxrDQvseSSHncQDDbiCUqId3boANIXDZhBvGCqZk/GvdFAbun/3TW8t5gWF",
+	"yeba/k2eQexOrW7+J+b9xPw3nD4WZI559QKbRe7BsAAM1n/zwNBBA3DE3TOQ1gqPR5vhvefvnuefgczd",
+	"7u2NPGNvl/OT1MkcQnwf9Xd59Q1bLwHGjPNTgFiEAfVfdZodqVPNvbPj7KjkvupSfcxOsn9qTm7Z+KUh",
+	"xGfqvTpTH81rzeLPPHWh26pz3TZ7mx2rd+rS04Q+O8reap5fgOmXFAyJytEUkZjofY4DQPbb+krPUQcY",
+	"d25eif8biWtqnE6p4ZkvuvMHj+3vC5ANik0+ujSzH79WNS1RdpQdq3OzR3mnLtT5tLBm85SdqAt1qj6o",
+	"01zRT9lJYZZ/e7qLGVddqvfZiXPQJhV5CPzxqElH+3XdlsL6WiXH/vj2M4JYhpRgigM4irxgEtLurJBU",
+	"S4tNeaGsPy5nZnANZ2E4NV7bY6qmIcs6uVvKyff11d7qyoOe/nOViNyj54c2ToHLOWyr9ckhzjVVKerW",
+	"LjXMt3V3xfw+Wd1UtihjcpnSVVLJNEXCKt/NpKw2pYTJQci8KtTXe8GleL4zp3A4UevGi1DXle2OVjkq",
+	"dlyMjnbFjgpAZpa2O7SXaWvqO1rPWOD2zkLi4q5q3CEHL1MsPwM58WitWDHt1znliqWI22Vya16FuFqK",
+	"Lh53STi2R12LDrgKk93SEVdFoG95zDXLHGsesOf7y3Sa1XiA5EnWCkWMDho3rS/0x680yUKftNArsXJM",
+	"dNA/rfipAN6SouSXVb6Tuqy9nLA03CXNbxrlCEjNZY55nEXr/32dwiyLxzWxMbdxZklN6fQ5hOY+yu8w",
+	"62mI8iLRz62u2vtd309lNb+x6CpTLrg9WVyanNyj3OlURNHjrhd9WtQ17+uQNxXIy1WDTPN4bAxm35Lx",
+	"RTsVbZlHtuX93mDJbrrhwq/NIBFkQHftneIGlJTXr2+nOF2ZwGV5MqAeoaY+nS9f3642vSzL/yOTd8mv",
+	"ixmAxUOaLMbDdnLLeNhOGvGQJvd4uIFziiYw6Lams6V403fgE5BCMg5r3fLyvI8T4h+sIb2E56PViMv/",
+	"1Bd1brjIheF+5r6JuQ6vfveytyVZ0dzmvHIcXVx36Fx9yC+GWP5u2KRmkjNDl7Wa6w2uWdO/1AdDjU6z",
+	"Y81js9+mp7A2rQ+fV1wKQfSv8c74jwAAAP//UiaAz8w6AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

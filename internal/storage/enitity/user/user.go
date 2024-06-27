@@ -19,22 +19,100 @@ type User struct {
 }
 
 type IUser interface {
-	GetUsers() ([]*User, error)
-	GetUserById(id int) (*User, error)
-	GetUserByLogin(login string) (*User, error)
-	GetUserByEmail(email string) (*User, error)
-	CreateUser(user *User) error
-	UpdateUser(user *User) error
-	DeleteUser(id int) error
-	ForgetPassword(email string) error
-	GetAvatar(id int) (string, error)
-	GetSubscribers(id int) ([]int, error)
-	GetFollowers(id int) ([]int, error)
-	UserSignUp(id int) ([]*User, error)
-	UserSignIn(id int) ([]*User, error)
+	GetUsers(conn *pgx.Conn) ([]User, error)
+	GetUserById(conn *pgx.Conn, id int) error
+	GetUserByLogin(conn *pgx.Conn, login string) error
+	GetUserByEmail(conn *pgx.Conn, email string) error
+	//Оставить
+	UpdateUser(conn *pgx.Conn, user *User) error
+	DeleteUser(conn *pgx.Conn, id int) error
+	//Оставить
+	ForgetPassword(conn *pgx.Conn, email string) error
+	GetAvatar(conn *pgx.Conn, id int) error
+	GetSubscribers(conn *pgx.Conn, id int) ([]int, error)
+	GetFollowers(conn *pgx.Conn, id int) ([]int, error)
+	UserSignUp(conn *pgx.Conn) error
+	UserSignIn(conn *pgx.Conn, email string, password string) error
 }
 
-func GetUsers(conn *pgx.Conn) ([]User, error) {
+var _ IUser = (*User)(nil)
+
+func (u *User) GetUserById(conn *pgx.Conn, id int) error {
+	query := `SELECT * FROM users WHERE id = $1`
+
+	row := conn.QueryRow(context.Background(), query, id)
+	if err := row.Scan(&u.Id, &u.Login, &u.Email, &u.Password, &u.AvatarId, &u.Description, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) GetUserByLogin(conn *pgx.Conn, login string) error {
+	query := `SELECT * FROM users WHERE login = $1`
+
+	row := conn.QueryRow(context.Background(), query, login)
+	if err := row.Scan(&u.Id, &u.Login, &u.Email, &u.Password, &u.AvatarId, &u.Description, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) GetUserByEmail(conn *pgx.Conn, email string) error {
+	query := `SELECT * FROM users WHERE email = $1`
+
+	row := conn.QueryRow(context.Background(), query, email)
+	if err := row.Scan(&u.Id, &u.Login, &u.Email, &u.Password, &u.AvatarId, &u.Description, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) UpdateUser(conn *pgx.Conn, user *User) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *User) DeleteUser(conn *pgx.Conn, id int) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *User) ForgetPassword(conn *pgx.Conn, password string) error {
+	query := `UPDATE users SET password = $1 WHERE email = $2`
+
+	row := conn.QueryRow(context.Background(), query, password, &u.Email)
+	if err := row.Scan(&u.Id, &u.Login, &u.Email, &u.Password, &u.AvatarId, &u.Description, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) GetAvatar(conn *pgx.Conn, id int) error {
+	query := `SELECT avatar_id FROM users WHERE id  =  $1`
+
+	row := conn.QueryRow(context.Background(), query, id)
+	if err := row.Scan(&u.AvatarId); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *User) GetSubscribers(conn *pgx.Conn, id int) ([]int, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *User) GetFollowers(conn *pgx.Conn, id int) ([]int, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (u *User) GetUsers(conn *pgx.Conn) ([]User, error) {
 	rows, err := conn.Query(context.Background(), "SELECT * FROM users")
 	if err != nil {
 		slog.Error("Error querying users: %s", err)
@@ -57,70 +135,24 @@ func GetUsers(conn *pgx.Conn) ([]User, error) {
 	return users, nil
 }
 
-func (u *User) GetUserById(id int) (*User, error) {
-	return nil, nil
-}
-
-func (u *User) GetUserByLogin(login string) (*User, error) {
-	return nil, nil
-}
-
-func (u *User) GetUserByEmail(email string) (*User, error) {
-	return nil, nil
-}
-
-func (u *User) CreateUser(conn *pgx.Conn) (*User, error) {
-	return nil, nil
-}
-
-func (u *User) UpdateUser(user *User) error {
-	return nil
-}
-
-func (u *User) DeleteUser(id int) error {
-	return nil
-}
-
-func (u *User) ForgetPassword(email string) error {
-	return nil
-}
-
-func (u *User) GetAvatar(id int) (string, error) {
-	return "", nil
-}
-
-func (u *User) GetSubscribers(id int) ([]int, error) {
-	return nil, nil
-}
-
-func (u *User) GetFollowers(id int) ([]int, error) {
-	return nil, nil
-}
-
 func (u *User) UserSignIn(conn *pgx.Conn, email string, password string) error {
-	rows := conn.QueryRow(context.Background(), "SELECT * FROM users WHERE email = $1 and password = $2", email, password)
+	query := `SELECT * FROM users WHERE email = $1 and password = $2`
 
-	var user User
-	if scanErr := rows.Scan(&user.Id, &user.Login, &user.Email, &user.Password, &user.AvatarId, &user.Description, &user.CreatedAt, &user.UpdatedAt); scanErr != nil {
+	row := conn.QueryRow(context.Background(), query, email, password)
+	if scanErr := row.Scan(&u.Id, &u.Login, &u.Email, &u.Password, &u.AvatarId, &u.Description, &u.CreatedAt, &u.UpdatedAt); scanErr != nil {
 		slog.Error("Error scanning row: %s", scanErr)
 		return scanErr
 	}
+
 	return nil
 }
 
 func (u *User) UserSignUp(conn *pgx.Conn) error {
-
-	query := `INSERT INTO users(login, email, password, created_at)
-			  VALUES($1, $2, $3)`
-
-	rows, err := conn.Exec(context.Background(), query, &u.Login, &u.Email, &u.Password)
-
-	if err != nil {
+	query := `INSERT INTO users(login, email, password, created_at) VALUES($1, $2, $3, $4)`
+	if _, err := conn.Exec(context.Background(), query, &u.Login, &u.Email, &u.Password, time.Now()); err != nil {
 		slog.Error("Error creating user: %s", err)
 		return err
 	}
-
-	slog.Info("New user created", rows.String())
 
 	return nil
 }
